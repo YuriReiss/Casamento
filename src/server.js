@@ -139,6 +139,68 @@ app.put('/convidados/:id/confirmar-presenca', async (req, res) => {
   }
 });
 
+// 👉 Função para calcular o CRC-16/CCITT-FALSE
+function calcularCRC16(payload) {
+  let polinomio = 0x1021;
+  let resultado = 0xFFFF;
+
+  for (let i = 0; i < payload.length; i++) {
+    resultado ^= payload.charCodeAt(i) << 8;
+    for (let bit = 0; bit < 8; bit++) {
+      if ((resultado & 0x8000) !== 0) {
+        resultado = ((resultado << 1) ^ polinomio);
+      } else {
+        resultado <<= 1;
+      }
+      resultado &= 0xFFFF;
+    }
+  }
+
+  return resultado.toString(16).toUpperCase().padStart(4, '0');
+}
+
+// 👉 Função para montar o payload Pix Copia e Cola
+function gerarPixCopiaECola(chave, nome, cidade, valor) {
+  const gui = 'br.gov.bcb.pix';
+
+  const campo26 = `0014${gui}01${chave}`;
+  const merchantAccountInfo = `26${campo26.length.toString().padStart(2, '0')}${campo26}`;
+
+  const nomeLimite = nome.slice(0, 25);
+  const cidadeLimite = cidade.slice(0, 15);
+
+  let payload =
+    '000201' +
+    merchantAccountInfo +
+    '52040000' +
+    '5303986' +
+    (valor ? `54${valor.toFixed(2).length.toString().padStart(2, '0')}${valor.toFixed(2)}` : '') +
+    '5802BR' +
+    `59${nomeLimite.length.toString().padStart(2, '0')}${nomeLimite}` +
+    `60${cidadeLimite.length.toString().padStart(2, '0')}${cidadeLimite}` +
+    '62070503***' +
+    '6304';
+
+  const crc = calcularCRC16(payload);
+  return payload + crc;
+}
+
+// 👉 Endpoint GET (ex: /pix?valor=25.5)
+app.get('/pix', (req, res) => {
+  const valor = parseFloat(req.query.valor);
+
+  if (isNaN(valor) || valor <= 0) {
+    return res.status(400).json({ error: 'Valor inválido' });
+  }
+
+  // Dados fixos
+  const chave = '+5562994523722';
+  const nome = 'Yuri dos Reis de Oliveira';
+  const cidade = 'SAO PAULO';
+
+  const payload = gerarPixCopiaECola(chave, nome, cidade, valor);
+  return res.json({ copiaECola: payload });
+});
 
 // Inicia o servidor
 app.listen(port, () => {
