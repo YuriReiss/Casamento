@@ -5,10 +5,10 @@ const port = 3000;
 
 const pool = new Pool({
   user: 'postgres',
-  host: 'heartily-punctual-petrel.data-1.use1.tembo.io',
+  host: 'demurely-spacious-flycatcher.data-1.use1.tembo.io',
   database: 'postgres',
-  password: 'LTDD5QMvJiVzGdAZ',
-  port: 5432, // A maioria dos PostgreSQL usa 5432
+  password: 'R3S81ya2kjUF7hBX',
+  port: 5432,
   ssl: { rejectUnauthorized: false }, // Necessário para muitos bancos na nuvem
 });
 
