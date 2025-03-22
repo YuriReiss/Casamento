@@ -159,7 +159,7 @@ function calcularCRC16(payload) {
 
 function gerarPixCopiaECola(chave, nome, cidade, valor) {
   const GUI = 'br.gov.bcb.pix';
-  const txid = 'Casamento'; // pode ser personalizado
+  const txid = '***'; // pode ser personalizado
 
   // Monta o campo 26 (Merchant Account Info)
   const chavePix = `01${chave.length.toString().padStart(2, '0')}${chave}`;
