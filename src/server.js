@@ -138,8 +138,6 @@ app.put('/convidados/:id/confirmar-presenca', async (req, res) => {
     client.release();
   }
 });
-
-// 👉 Função para calcular o CRC-16/CCITT-FALSE
 function calcularCRC16(payload) {
   let polinomio = 0x1021;
   let resultado = 0xFFFF;
@@ -159,47 +157,55 @@ function calcularCRC16(payload) {
   return resultado.toString(16).toUpperCase().padStart(4, '0');
 }
 
-// 👉 Função para montar o payload Pix Copia e Cola
 function gerarPixCopiaECola(chave, nome, cidade, valor) {
-  const gui = 'br.gov.bcb.pix';
+  const GUI = 'br.gov.bcb.pix';
+  const txid = '***'; // pode ser personalizado
 
-  const campo26 = `0014${gui}01${chave}`;
-  const merchantAccountInfo = `26${campo26.length.toString().padStart(2, '0')}${campo26}`;
+  // Monta o campo 26 (Merchant Account Info)
+  const chavePix = `01${chave.length.toString().padStart(2, '0')}${chave}`;
+  const guiField = `00${GUI.length.toString().padStart(2, '0')}${GUI}`;
+  const merchantAccountInfo = guiField + chavePix;
+  const campo26 = `26${merchantAccountInfo.length.toString().padStart(2, '0')}${merchantAccountInfo}`;
 
-  const nomeLimite = nome.slice(0, 25);
-  const cidadeLimite = cidade.slice(0, 15);
-
+  // Monta o payload
   let payload =
-    '000201' +
-    merchantAccountInfo +
-    '52040000' +
-    '5303986' +
-    (valor ? `54${valor.toFixed(2).length.toString().padStart(2, '0')}${valor.toFixed(2)}` : '') +
+    '000201' + // Payload Format Indicator
+    campo26 +
+    '52040000' + // Merchant Category Code
+    '5303986';   // Currency (BRL)
+
+  // Valor
+  const valorFormatado = valor.toFixed(2);
+  payload += `54${valorFormatado.length.toString().padStart(2, '0')}${valorFormatado}`;
+
+  // País, nome e cidade
+  payload +=
     '5802BR' +
-    `59${nomeLimite.length.toString().padStart(2, '0')}${nomeLimite}` +
-    `60${cidadeLimite.length.toString().padStart(2, '0')}${cidadeLimite}` +
-    '62070503***' +
+    `59${nome.slice(0, 25).length.toString().padStart(2, '0')}${nome.slice(0, 25)}` +
+    `60${cidade.slice(0, 15).length.toString().padStart(2, '0')}${cidade.slice(0, 15)}` +
+    `62070503${txid}` + // TXID
+
+    // Adiciona campo CRC (sem o valor ainda)
     '6304';
 
+  // Calcula o CRC e finaliza
   const crc = calcularCRC16(payload);
   return payload + crc;
 }
 
-// 👉 Endpoint GET (ex: /pix?valor=25.5)
+// Endpoint GET: /pix?valor=99.90
 app.get('/pix', (req, res) => {
   const valor = parseFloat(req.query.valor);
-
   if (isNaN(valor) || valor <= 0) {
     return res.status(400).json({ error: 'Valor inválido' });
   }
 
-  // Dados fixos
   const chave = '+5562994523722';
   const nome = 'Yuri dos Reis de Oliveira';
-  const cidade = 'SAO PAULO';
+  const cidade = 'GOIANIA';
 
-  const payload = gerarPixCopiaECola(chave, nome, cidade, valor);
-  return res.json({ copiaECola: payload });
+  const copiaECola = gerarPixCopiaECola(chave, nome, cidade, valor);
+  return res.json({ copiaECola });
 });
 
 // Inicia o servidor
