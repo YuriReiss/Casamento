@@ -46,6 +46,30 @@ app.get('/presentes', async (req, res) => {
   }
 });
 
+app.get('/convidado-presente', async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(`
+      SELECT 
+        cp.Id,
+        cp.ConvidadoId,
+        cp.PresenteId,
+        c.Nome AS NomeConvidado,
+        cp.ValorConcedido
+      FROM ConvidadoPresente cp
+      INNER JOIN Convidado c ON cp.ConvidadoId = c.Id
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Erro ao buscar contribuições dos convidados:', error);
+    res.status(500).json({ message: 'Erro ao buscar contribuições', error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
 app.get('/destinos-lua-de-mel', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -58,6 +82,60 @@ app.get('/destinos-lua-de-mel', async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar destinos de lua de mel', error: error.message });
   } finally {
     client.release(); // Libera a conexão de volta para o pool
+  }
+});
+
+app.post('/convidado-presente', async (req, res) => {
+  const { ConvidadoId, PresenteId, ValorConcedido } = req.body;
+
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(`
+      INSERT INTO ConvidadoPresente (ConvidadoId, PresenteId, ValorConcedido)
+      VALUES ($1, $2, $3)
+      RETURNING *;
+    `, [ConvidadoId, PresenteId, ValorConcedido]);
+
+    res.status(201).json({
+      message: 'Contribuição registrada com sucesso',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Erro ao registrar contribuição:', error);
+    res.status(500).json({ message: 'Erro ao registrar contribuição', error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+app.put('/convidados/:id/confirmar-presenca', async (req, res) => {
+  const { id } = req.params;
+  const { presenca } = req.body; // true ou false
+
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(`
+      UPDATE Convidado
+      SET PresencaConfirmada = $1
+      WHERE Id = $2
+      RETURNING *;
+    `, [presenca, id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Convidado não encontrado' });
+    }
+
+    res.json({
+      message: `Presença ${presenca ? 'confirmada' : 'não confirmada'} com sucesso`,
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Erro ao confirmar presença:', error);
+    res.status(500).json({ message: 'Erro ao confirmar presença', error: error.message });
+  } finally {
+    client.release();
   }
 });
 
