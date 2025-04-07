@@ -20,6 +20,7 @@ app.get('/convidados', async (req, res) => {
       FROM Convidado c
       LEFT JOIN Presente p ON c.PresenteId = p.Id
     `);
+    res.header('Access-Control-Allow-Origin', '*');
     res.json(result.rows); // Retorna os dados em formato JSON
   } catch (error) {
     console.error(error);
@@ -37,6 +38,7 @@ app.get('/presentes', async (req, res) => {
       FROM Presente p
       LEFT JOIN DestinoLuaDeMel d ON p.DestinoId = d.Id
     `);
+    res.header('Access-Control-Allow-Origin', '*');
     res.json(result.rows); // Retorna os dados em formato JSON
   } catch (error) {
     console.error(error);
@@ -60,7 +62,7 @@ app.get('/convidado-presente', async (req, res) => {
       FROM ConvidadoPresente cp
       INNER JOIN Convidado c ON cp.ConvidadoId = c.Id
     `);
-
+    res.header('Access-Control-Allow-Origin', '*');
     res.json(result.rows);
   } catch (error) {
     console.error('Erro ao buscar contribuições dos convidados:', error);
@@ -76,6 +78,7 @@ app.get('/destinos-lua-de-mel', async (req, res) => {
       SELECT Id, Nome, ValorNecessario, URLFoto
       FROM DestinoLuaDeMel
     `);
+    res.header('Access-Control-Allow-Origin', '*');
     res.json(result.rows);
   } catch (error) {
     console.error('Erro ao buscar destinos de lua de mel:', error);
@@ -96,7 +99,7 @@ app.post('/convidado-presente', async (req, res) => {
       VALUES ($1, $2, $3)
       RETURNING *;
     `, [ConvidadoId, PresenteId, ValorConcedido]);
-
+    res.header('Access-Control-Allow-Origin', '*');
     res.status(201).json({
       message: 'Contribuição registrada com sucesso',
       data: result.rows[0],
@@ -126,7 +129,7 @@ app.put('/convidados/:id/confirmar-presenca', async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Convidado não encontrado' });
     }
-
+    res.header('Access-Control-Allow-Origin', '*');
     res.json({
       message: `Presença ${presenca ? 'confirmada' : 'não confirmada'} com sucesso`,
       data: result.rows[0]
@@ -138,6 +141,7 @@ app.put('/convidados/:id/confirmar-presenca', async (req, res) => {
     client.release();
   }
 });
+
 function calcularCRC16(payload) {
   let polinomio = 0x1021;
   let resultado = 0xFFFF;
@@ -205,6 +209,8 @@ app.get('/pix', (req, res) => {
   const cidade = 'GOIANIA';
 
   const copiaECola = gerarPixCopiaECola(chave, nome, cidade, valor);
+  
+  res.header('Access-Control-Allow-Origin', '*');
   return res.json({ copiaECola });
 });
 
