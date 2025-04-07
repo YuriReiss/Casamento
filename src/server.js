@@ -14,7 +14,7 @@ const pool = new Pool({
 });
 
 const corsOptions = {
-  methods: 'GET,POST','PUT'            // Permite apenas os métodos GET e POST
+  methods: 'GET, POST, PUT'  // Permite apenas os métodos GET, POST e PUT
 };
 
 app.use(cors(corsOptions)); // Liberar CORS para todas as origens
