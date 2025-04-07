@@ -16,9 +16,8 @@ const pool = new Pool({
 app.get('/convidados', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT c.Id, c.Nome, c.PresencaConfirmada, c.ValorConcedido, p.Nome as Presente
-      FROM Convidado c
-      LEFT JOIN Presente p ON c.PresenteId = p.Id
+      SELECT Id, Nome, PresencaConfirmada
+      FROM Convidado
     `);
     res.header('Access-Control-Allow-Origin', '*');
     res.json(result.rows); // Retorna os dados em formato JSON
