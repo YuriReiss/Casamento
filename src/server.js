@@ -13,7 +13,11 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }, // Necessário para muitos bancos na nuvem
 });
 
-app.use(cors()); // Liberar CORS para todas as origens
+const corsOptions = {
+  methods: 'GET,POST','PUT'            // Permite apenas os métodos GET e POST
+};
+
+app.use(cors(corsOptions)); // Liberar CORS para todas as origens
 
 // Endpoint para obter a lista de convidados
 app.get('/convidados', async (req, res) => {
