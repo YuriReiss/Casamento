@@ -98,6 +98,7 @@ app.post('/convidado-presente', async (req, res) => {
       VALUES ($1, $2, $3)
       RETURNING *;
     `, [ConvidadoId, PresenteId, ValorConcedido]);
+    
     res.header('Access-Control-Allow-Origin', '*');
     res.status(201).json({
       message: 'Contribuição registrada com sucesso',
@@ -125,10 +126,10 @@ app.put('/convidados/:id/confirmar-presenca', async (req, res) => {
       RETURNING *;
     `, [presenca, id]);
 
+    res.header('Access-Control-Allow-Origin', '*');
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Convidado não encontrado' });
     }
-    res.header('Access-Control-Allow-Origin', '*');
     res.json({
       message: `Presença ${presenca ? 'confirmada' : 'não confirmada'} com sucesso`,
       data: result.rows[0]
