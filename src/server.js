@@ -6,10 +6,10 @@ const port = 3000;
 
 const pool = new Pool({
   user: 'postgres',
-  host: 'demurely-spacious-flycatcher.data-1.use1.tembo.io',
-  database: 'postgres',
-  password: 'R3S81ya2kjUF7hBX',
-  port: 5432,
+  host: 'nozomi.proxy.rlwy.net',
+  database: 'railway',
+  password: 'uFcEcenPTvXLtVETVnULbixnteTyfJSK',
+  port: 55819,
   ssl: { rejectUnauthorized: false }, // Necessário para muitos bancos na nuvem
 });
 
